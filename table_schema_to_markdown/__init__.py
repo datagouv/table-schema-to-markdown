@@ -205,9 +205,9 @@ def convert_source(source, out_fd):
 
 def write_property(schema_json, property_name, out_fd, prefix="", suffix="\n\n"):
     if property_name in schema_json:
-        propery_value = format_property(property_name, schema_json[property_name])
-        if propery_value != "":
-            out_fd.write(prefix + propery_value + suffix)
+        property_value = format_property(property_name, schema_json[property_name])
+        if property_value != "":
+            out_fd.write(prefix + property_value + suffix)
 
 
 def convert_json(schema_json, out_fd):
