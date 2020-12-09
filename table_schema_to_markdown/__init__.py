@@ -296,7 +296,10 @@ def convert_json(schema_json, out_fd,style):
                     out_fd.write(" {} - ".format(field_title))
                 out_fd.write("Propriété `{}`".format(field_name))
                 out_fd.write("\n\n> *Description : {}<br/>Ex : {}*".format(field_description, field_example))
-                out_fd.write("\n- {}".format(required))
+                if(required is not None):
+                    out_fd.write("\n- {}".format(required))
+                else:
+                    out_fd.write("\n- Valeur optionnelle")
                 out_fd.write("\n- Type : {}".format(TYPE_MAP[field_type]))
                 if field_format is not None:
                     out_fd.write(" (format `{}`)".format(field_format))
