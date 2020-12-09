@@ -309,7 +309,7 @@ def convert_json(schema_json, out_fd,style):
                 if(sizes != ""):
                     out_fd.write("\n- {}".format(sizes))
                 if(pattern != ""):
-                    out_fd.write("\n- Motif `{}`".format(pattern))
+                    out_fd.write("\n- Motif : `{}`".format(pattern))
                 out_fd.write("\n")
               
 
