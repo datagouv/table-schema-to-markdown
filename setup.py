@@ -4,7 +4,7 @@ setup(
     name="table_schema_to_markdown",
     license="MIT",
     packages=["table_schema_to_markdown"],
-    version="0.4.0",
+    version="0.4.1",
     description="Generate Markdown documentation from a table schema file from Frictionless Data",
     author="Antoine Augusti, Geoffrey Aldebert",
     author_email="hi@antoine-augusti.fr, geoffrey.aldebert@data.gouv.fr",
