@@ -195,12 +195,12 @@ def format_name(field_json):
     return ret
 
 
-def convert_source(source, out_fd):
+def convert_source(source, out_fd,style='table'):
     log.info("Loading schema from %r", source)
     with open(source, encoding="utf-8") as f:
         schema = json.load(f)
 
-    convert_json(schema, out_fd)
+    convert_json(schema, out_fd,style)
 
 
 def write_property(schema_json, property_name, out_fd, prefix="", suffix="\n\n"):
@@ -210,7 +210,7 @@ def write_property(schema_json, property_name, out_fd, prefix="", suffix="\n\n")
             out_fd.write(prefix + property_value + suffix)
 
 
-def convert_json(schema_json, out_fd):
+def convert_json(schema_json, out_fd,style):
     """ Converts table schema data to markdown """
 
     # Header
@@ -233,14 +233,24 @@ def convert_json(schema_json, out_fd):
     out_fd.write("\n")
 
     fields = schema_json.get("fields")
+
     if fields:
         out_fd.write("### Modèle de données\n\n")
-        # GitHub Flavored Markdown table header
-        headers = ["Nom", "Type", "Description", "Exemple", "Propriétés"]
-        out_fd.write("|" + "|".join(headers) + "|\n")
-        out_fd.write("|" + "|".join("-" * len(headers)) + "|\n")
-        for field in fields:
-            convert_field(field, out_fd)
+        if(style == 'table'):
+            # GitHub Flavored Markdown table header
+            headers = ["Nom", "Type", "Description", "Exemple", "Propriétés"]
+            out_fd.write("|" + "|".join(headers) + "|\n")
+            out_fd.write("|" + "|".join("-" * len(headers)) + "|\n")
+            for field in fields:
+                convert_field(field, out_fd)
+        elif(style == 'page'):
+            for field in fields:
+                field_name = field.get("name")
+                field_description = field.get("description")
+                out_fd.write("\n#### `{}`".format(field_name))
+                out_fd.write("\n*{}*".format(field_description))
+
+    
 
 
 def format_description(field_json):
