@@ -243,15 +243,75 @@ def convert_json(schema_json, out_fd,style):
             out_fd.write("|" + "|".join("-" * len(headers)) + "|\n")
             for field in fields:
                 convert_field(field, out_fd)
+
         elif(style == 'page'):
             for field in fields:
                 field_name = field.get("name")
                 field_description = field.get("description")
-                out_fd.write("\n#### `{}`".format(field_name))
-                out_fd.write("\n*{}*".format(field_description))
+                field_type = field.get("type")
+                field_example = field.get("example")               
+                field_constraints = field.get("constraints")   
+                field_format = field.get("format")
+                field_title = field.get("title")
+                listenums = []
+                intervals = ""
+                sizes = ""
+                pattern = ""
 
-    
+                if field_constraints:
+                    required = None
+                    if field_constraints.get("required"):
+                        required = "Valeur obligatoire"
+                    elif not field_constraints.get("required", True):
+                        required = "Valeur optionnelle"
+                    
+                    if "minLength" in field_constraints:
+                        if(field_constraints["minLength"] != None):
+                            sizes = "Plus de "+str(field_constraints["minLength"])+" caractères"
+                        
+                    if "maxLength" in field_constraints:
+                        if(sizes != ""):
+                            sizes = "Entre "+sizes.replace("Plus de ","").replace(" caractères","")+" et "+str(field_constraints['maxLength'])+" caractères"
+                        else:
+                            sizes = "Moins de "+str(field_constraints['maxLength'])+" caractères"        
+                    
+                    if "minimum" in field_constraints:
+                        if(field_constraints["minimum"] != None):
+                            intervals = "Valeur supérieur à "+str(field_constraints["minimum"])
+                        
+                    if "maximum" in field_constraints:
+                        if(intervals != ""):
+                            intervals = "Valeur entre "+intervals.replace("Valeur supérieur à ","")+" et "+str(field_constraints['maximum'])
+                        else:
+                            intervals = "Valeur inférieur à : "+str(field_constraints['maximum'])
+                            
+                    if "pattern" in field_constraints:
+                        pattern = str(field_constraints['pattern'])
 
+                    if "enum" in field_constraints:
+                        listenums = field_constraints["enum"]
+
+                out_fd.write("\n#### ")
+                if(field_title is not None):
+                    out_fd.write(" {} - ".format(field_title))
+                out_fd.write("Propriété `{}`".format(field_name))
+                out_fd.write("\n\n> *Description : {}<br/>Ex : {}*".format(field_description, field_example))
+                out_fd.write("\n- {}".format(required))
+                out_fd.write("\n- Type : {}".format(TYPE_MAP[field_type]))
+                if field_format is not None:
+                    out_fd.write(" (format `{}`)".format(field_format))
+                if(len(listenums) > 0):
+                    out_fd.write("\n- Valeurs autorisées : ")
+                    for enum in listenums:
+                        out_fd.write("\n    - {}".format(enum))
+                if(intervals != ""):
+                    out_fd.write("\n- {}".format(intervals))
+                if(sizes != ""):
+                    out_fd.write("\n- {}".format(sizes))
+                if(pattern != ""):
+                    out_fd.write("\n- Motif `{}`".format(pattern))
+                out_fd.write("\n")
+              
 
 def format_description(field_json):
     description = field_json.get("description")
