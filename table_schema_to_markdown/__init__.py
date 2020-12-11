@@ -247,7 +247,7 @@ def convert_json(schema_json, out_fd,style):
         elif(style == 'page'):
 
             out_fd.write("\n##### Liste des propriétés")
-            out_fd.write("\n| Propriété | Type | Obligatoire |")
+            out_fd.write("\n\n| Propriété | Type | Obligatoire |")
             out_fd.write("\n| -- | -- | -- |")
             
             for field in fields:
