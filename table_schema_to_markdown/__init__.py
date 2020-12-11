@@ -256,7 +256,7 @@ def convert_json(schema_json, out_fd,style):
                 if(field_title is not None):
                     strUrl = "["+field_name+"](#"+field_title.lower().replace(" ","-")+"---propriété-"+field_name.lower()+")"
                 else:
-                    strUrl = "["+field_name+"](#propriété-"+field_name+")"
+                    strUrl = "["+field_name+"](#propriété-"+field_name.lower()+")"
 
                 field_type = field.get("type")
                 field_format = field.get("format")   
