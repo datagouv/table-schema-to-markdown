@@ -245,6 +245,45 @@ def convert_json(schema_json, out_fd,style):
                 convert_field(field, out_fd)
 
         elif(style == 'page'):
+
+            out_fd.write("\n##### Liste des propriétés")
+            out_fd.write("\n| Propriété | Type | Obligatoire |")
+            out_fd.write("\n| -- | -- | -- |")
+            
+            for field in fields:
+                field_name = field.get("name")
+                field_title = field.get("title")
+                if(field_title is not None):
+                    strUrl = "["+field_name+"](#"+field_title.lower().replace(" ","-")+"---propriété-"+field_name.lower()+")"
+                else:
+                    strUrl = "["+field_name+"](#propriété-"+field_name+")"
+
+                field_type = field.get("type")
+                field_format = field.get("format")   
+                field_constraints = field.get("constraints")   
+                strFormat = ""
+                if field_format is not None:
+                    strFormat = "(format `"+field.get("format")+"`)"
+
+                field_title = field.get("title")
+                listenums = []
+                intervals = ""
+                sizes = ""
+                pattern = ""
+
+                if field_constraints:
+                    required = None
+                    if field_constraints.get("required"):
+                        required = "Oui"
+                    elif not field_constraints.get("required", True):
+                        required = "Non"
+                else:
+                    required = "Non"
+                
+                out_fd.write("\n| {} | {} {} | {} |".format(strUrl,TYPE_MAP[field_type],strFormat,required))
+                    
+            out_fd.write("\n")
+
             for field in fields:
                 field_name = field.get("name")
                 field_description = field.get("description")
@@ -291,9 +330,10 @@ def convert_json(schema_json, out_fd,style):
                     if "enum" in field_constraints:
                         listenums = field_constraints["enum"]
 
+
                 out_fd.write("\n#### ")
                 if(field_title is not None):
-                    out_fd.write(" {} - ".format(field_title))
+                    out_fd.write("{} - ".format(field_title))
                 out_fd.write("Propriété `{}`".format(field_name))
                 out_fd.write("\n\n> *Description : {}<br/>Ex : {}*".format(field_description, field_example))
                 if(required is not None):
