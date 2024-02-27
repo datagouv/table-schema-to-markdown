@@ -297,8 +297,8 @@ def convert_json(schema_json, out_fd,style):
                 sizes = ""
                 pattern = ""
 
+                required = None
                 if field_constraints:
-                    required = None
                     if field_constraints.get("required"):
                         required = "Valeur obligatoire"
                     elif not field_constraints.get("required", True):
