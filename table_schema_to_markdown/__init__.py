@@ -166,7 +166,7 @@ def format_constraints(col_content):
 
 def format_property(name, value):
     if name == CREATED:
-        return datetime.strptime(value, "%Y-%m-%d").strftime("%x")
+        return datetime.strptime(value, "%Y-%m-%d").strftime("%d/%m/%Y")
     if name == MISSING_VALUES:
         if value == [""]:
             return ""
@@ -297,8 +297,8 @@ def convert_json(schema_json, out_fd,style):
                 sizes = ""
                 pattern = ""
 
+                required = None
                 if field_constraints:
-                    required = None
                     if field_constraints.get("required"):
                         required = "Valeur obligatoire"
                     elif not field_constraints.get("required", True):
