@@ -29,4 +29,7 @@ class TestMain(unittest.TestCase):
             with open(expected_filepath, encoding="utf-8") as f:
                 expected = f.read().split("\n")
 
+            # this will most likely fail with further modifications of
+            # the markdown output, it's only meant as a reminder to
+            # compare with what the layout used to be
             self.assertEqual(expected, got)

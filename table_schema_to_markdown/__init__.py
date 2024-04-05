@@ -92,7 +92,7 @@ def format_type_specific_info(col_content):
 
     if "bareNumber" in col_content and col_content["bareNumber"] == "false":
         buff.write(
-            "Le nombre peut contenir des caractères"
+            "Le nombre peut contenir des caractères "
             "supplémentaires (« € », « % » ...)"
         )
     ret = buff.getvalue()
@@ -348,7 +348,7 @@ def convert_json(schema_json, out_fd, style):
 
                     if "minLength" in field_constraints:
                         if field_constraints["minLength"] is not None:
-                            sizes = f"Plus de {field_constraints['minLength']}) caractères"
+                            sizes = f"Plus de {field_constraints['minLength']} caractères"
 
                     if "maxLength" in field_constraints:
                         if sizes != "":
