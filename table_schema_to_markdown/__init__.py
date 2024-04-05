@@ -310,12 +310,8 @@ def convert_json(schema_json, out_fd, style):
                 sizes = ""
                 pattern = ""
 
-                if field_constraints:
-                    required = None
-                    if field_constraints.get("required"):
-                        required = "Oui"
-                    elif not field_constraints.get("required", True):
-                        required = "Non"
+                if field_constraints and field_constraints.get("required"):
+                    required = "Oui"
                 else:
                     required = "Non"
 
@@ -343,39 +339,50 @@ def convert_json(schema_json, out_fd, style):
                 if field_constraints:
                     if field_constraints.get("required"):
                         required = "Valeur obligatoire"
-                    elif not field_constraints.get("required", True):
+                    else:
                         required = "Valeur optionnelle"
 
-                    if "minLength" in field_constraints:
-                        if field_constraints["minLength"] is not None:
-                            sizes = f"Plus de {field_constraints['minLength']} caractères"
+                    if field_constraints.get("minLength"):
+                        sizes = (
+                            f"Plus de {field_constraints['minLength']} "
+                            "caractères"
+                        )
 
-                    if "maxLength" in field_constraints:
-                        if sizes != "":
+                    if field_constraints.get("maxLength"):
+                        if sizes:
                             sizes = (
-                                f"Entre {sizes.replace('Plus de ','').replace(' caractères','')}"
-                                f" et {field_constraints['maxLength']} caractères"
+                                f"Entre {field_constraints['minLength']} "
+                                f"et {field_constraints['maxLength']} "
+                                "caractères"
                             )
                         else:
-                            sizes = f"Moins de {field_constraints['maxLength']} caractères"
+                            sizes = (
+                                f"Moins de {field_constraints['maxLength']} "
+                                "caractères"
+                            )
 
-                    if "minimum" in field_constraints:
-                        if field_constraints["minimum"] is not None:
-                            intervals = f"Valeur supérieur à {field_constraints['minimum']}"
+                    if field_constraints.get("minimum"):
+                        intervals = (
+                            "Valeur supérieure à "
+                            f"{field_constraints['minimum']}"
+                        )
 
-                    if "maximum" in field_constraints:
-                        if intervals != "":
+                    if field_constraints.get("maximum"):
+                        if intervals:
                             intervals = (
-                                f"Valeur entre {intervals.replace('Valeur supérieur à ', '')}"
+                                f"Valeur entre {field_constraints['minimum']}"
                                 f" et {field_constraints['maximum']}"
                             )
                         else:
-                            intervals = f"Valeur inférieur à : {field_constraints['maximum']}"
+                            intervals = (
+                                "Valeur inférieure à : "
+                                f"{field_constraints['maximum']}"
+                            )
 
-                    if "pattern" in field_constraints:
+                    if field_constraints.get("pattern"):
                         pattern = str(field_constraints['pattern'])
 
-                    if "enum" in field_constraints:
+                    if field_constraints.get("enum"):
                         listenums = field_constraints["enum"]
 
                 out_fd.write("\n#### ")
