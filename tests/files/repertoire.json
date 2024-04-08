@@ -147,6 +147,15 @@
          "constraints": {
             "required": false
          }
+      },
+      {
+         "name":"prop.dot",
+         "description":"Un champ avec un point dans son nom (vérifier que son lien fonctionne sur le site)",
+         "example": ":shrug:",
+         "type":"string",
+         "constraints": {
+            "required": false
+         }
       }
    ],
    "primaryKey":"repertoire_url"

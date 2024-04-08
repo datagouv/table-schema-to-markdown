@@ -68,19 +68,19 @@ TYPE_SPECIFIC_MAP = OrderedDict(
 
 CONSTRAINTS_MAP = OrderedDict(
     [
-        ("minLength", lambda v: "Taille minimale : {}".format(v)),
-        ("maxLength", lambda v: "Taille maximale : {}".format(v)),
-        ("minimum", lambda v: "Valeur minimale : {}".format(v)),
-        ("maximum", lambda v: "Valeur maximale : {}".format(v)),
-        ("pattern", lambda v: "Motif : `{}`".format(v)),
-        ("enum", lambda v: "Valeurs autorisées : {}".format(", ".join(v))),
+        ("minLength", lambda v: f"Taille minimale : {v}"),
+        ("maxLength", lambda v: f"Taille maximale : {v}"),
+        ("minimum", lambda v: f"Valeur minimale : {v}"),
+        ("maximum", lambda v: f"Valeur maximale : {v}"),
+        ("pattern", lambda v: f"Motif : `{v}`"),
+        ("enum", lambda v: f"Valeurs autorisées : {', '.join(v)}"),
     ]
 )
 
 
 def format_format(format_val):
     """ Return markdown format information """
-    return "- `{}` {}\n".format(format_val, FORMAT_MAP.get(format_val, ""))
+    return f"- `{format_val}` {FORMAT_MAP.get(format_val, '')}\n"
 
 
 def format_type_specific_info(col_content):
@@ -88,11 +88,12 @@ def format_type_specific_info(col_content):
     buff = io.StringIO()
     for prop in TYPE_SPECIFIC_MAP:
         if prop in col_content:
-            buff.write("{} : {}".format(TYPE_SPECIFIC_MAP[prop], col_content[prop]))
+            buff.write(f"{TYPE_SPECIFIC_MAP[prop]} : {col_content[prop]}")
 
     if "bareNumber" in col_content and col_content["bareNumber"] == "false":
         buff.write(
-            "Le nombre peut contenir des caractères supplémentaires (« € », « % » ...)"
+            "Le nombre peut contenir des caractères "
+            "supplémentaires (« € », « % » ...)"
         )
     ret = buff.getvalue()
     buff.close()
@@ -106,7 +107,7 @@ def format_type(col_content):
     format_ = col_content.get("format")
 
     if type_:
-        type_val = TYPE_MAP.get(type_, "??{}??".format(type_))
+        type_val = TYPE_MAP.get(type_, f"??{type_}??")
         buff.write(
             "{}{}|".format(
                 type_val,
@@ -121,7 +122,7 @@ def format_type(col_content):
     # RDFType
     rdf_type = col_content.get("rdfType")
     if rdf_type:
-        buff.write("{}|".format(rdf_type))
+        buff.write(f"{rdf_type}|")
 
     ret = buff.getvalue()
     buff.close()
@@ -131,8 +132,7 @@ def format_type(col_content):
 def format_example(col_content):
     example = col_content.get(EXAMPLE)
     if example:
-        return "{}|".format(example)
-
+        return f"{example}|"
     return "|"
 
 
@@ -149,13 +149,19 @@ def format_constraints(col_content):
             required = "Valeur optionnelle"
         constraint_str_list = list(
             filter(
-                None, [required, "Valeur unique" if constraints.get("unique") else None]
+                None,
+                [
+                    required,
+                    "Valeur unique" if constraints.get("unique") else None
+                ]
             )
         )
 
         # minLength, maxLength, minimum, maximum, pattern, enum
         for prop in [prop for prop in CONSTRAINTS_MAP if prop in constraints]:
-            constraint_str_list.append(CONSTRAINTS_MAP[prop](constraints[prop]))
+            constraint_str_list.append(
+                CONSTRAINTS_MAP[prop](constraints[prop])
+            )
 
         buff.write(", ".join(constraint_str_list))
 
@@ -170,7 +176,7 @@ def format_property(name, value):
     if name == MISSING_VALUES:
         if value == [""]:
             return ""
-        return ", ".join(map(lambda v: '`"{}"`'.format(v), value))
+        return ", ".join(map(lambda v: f'`"{v}"`', value))
     if name == PRIMARY_KEY:
         return ", ".join(value) if isinstance(value, list) else value
     return value
@@ -181,12 +187,12 @@ def format_name(field_json):
 
     field_name = field_json.get("name")
     buff.write(
-        "|{}".format("{}".format(field_name) if field_name else "Erreur : nom manquant")
+        f"|{field_name if field_name else 'Erreur : nom manquant'}"
     )
 
     title = field_json.get("title")
     if title:
-        buff.write(" ({})".format(title))
+        buff.write(f" ({title})")
 
     buff.write("|")
 
@@ -195,22 +201,35 @@ def format_name(field_json):
     return ret
 
 
-def convert_source(source, out_fd,style='table'):
+def convert_source(source, out_fd, style='table'):
     log.info("Loading schema from %r", source)
     with open(source, encoding="utf-8") as f:
         schema = json.load(f)
+    convert_json(schema, out_fd, style)
 
-    convert_json(schema, out_fd,style)
 
-
-def write_property(schema_json, property_name, out_fd, prefix="", suffix="\n\n"):
+def write_property(
+    schema_json,
+    property_name,
+    out_fd,
+    prefix="",
+    suffix="\n\n"
+):
     if property_name in schema_json:
-        property_value = format_property(property_name, schema_json[property_name])
+        property_value = format_property(
+            property_name,
+            schema_json[property_name]
+        )
         if property_value != "":
             out_fd.write(prefix + property_value + suffix)
 
 
-def convert_json(schema_json, out_fd,style):
+def make_link_suitable(field_name):
+    # replacing dots and underscores with dashes to make the inner links work
+    return field_name.lower().replace('.', '-').replace('_', '-')
+
+
+def convert_json(schema_json, out_fd, style):
     """ Converts table schema data to markdown """
 
     # Header
@@ -225,10 +244,23 @@ def convert_json(schema_json, out_fd,style):
         prefix = "- {} : ".format(SCHEMA_PROP_MAP[property_name])
         write_property(schema_json, property_name, out_fd, prefix, "\n")
 
-    write_property(schema_json, MISSING_VALUES, out_fd, "- Valeurs manquantes : ", "\n")
-    write_property(schema_json, PRIMARY_KEY, out_fd, "- Clé primaire : `", "`\n")
+    write_property(
+        schema_json,
+        MISSING_VALUES,
+        out_fd,
+        "- Valeurs manquantes : ",
+        "\n"
+    )
+    write_property(
+        schema_json,
+        PRIMARY_KEY,
+        out_fd,
+        "- Clé primaire : `",
+        "`\n"
+    )
 
-    # Foreign keys constraint is more complex than a list of strings, more work required.
+    # Foreign keys constraint is more complex
+    # than a list of strings, more work required.
 
     out_fd.write("\n")
 
@@ -236,7 +268,7 @@ def convert_json(schema_json, out_fd,style):
 
     if fields:
         out_fd.write("### Modèle de données\n\n")
-        if(style == 'table'):
+        if style == 'table':
             # GitHub Flavored Markdown table header
             headers = ["Nom", "Type", "Description", "Exemple", "Propriétés"]
             out_fd.write("|" + "|".join(headers) + "|\n")
@@ -244,26 +276,33 @@ def convert_json(schema_json, out_fd,style):
             for field in fields:
                 convert_field(field, out_fd)
 
-        elif(style == 'page'):
+        elif style == 'page':
 
             out_fd.write("\n##### Liste des propriétés")
             out_fd.write("\n\n| Propriété | Type | Obligatoire |")
             out_fd.write("\n| -- | -- | -- |")
-            
+
             for field in fields:
                 field_name = field.get("name")
                 field_title = field.get("title")
-                if(field_title is not None):
-                    strUrl = "["+field_name+"](#"+field_title.lower().replace(" ","-")+"---propriété-"+field_name.lower()+")"
+                if field_title is not None:
+                    strUrl = (
+                        f"[{field_name}]"
+                        f"(#{field_title.lower().replace(' ', '-')}"
+                        f"---propriete-{make_link_suitable(field_name)})"
+                    )
                 else:
-                    strUrl = "["+field_name+"](#propriété-"+field_name.lower()+")"
+                    strUrl = (
+                        f"[{field_name}]"
+                        f"(#propriete-{make_link_suitable(field_name)})"
+                    )
 
                 field_type = field.get("type")
-                field_format = field.get("format")   
-                field_constraints = field.get("constraints")   
+                field_format = field.get("format")
+                field_constraints = field.get("constraints")
                 strFormat = ""
                 if field_format is not None:
-                    strFormat = "(format `"+field.get("format")+"`)"
+                    strFormat = f"(format `{field.get('format')}`)"
 
                 field_title = field.get("title")
                 listenums = []
@@ -271,25 +310,24 @@ def convert_json(schema_json, out_fd,style):
                 sizes = ""
                 pattern = ""
 
-                if field_constraints:
-                    required = None
-                    if field_constraints.get("required"):
-                        required = "Oui"
-                    elif not field_constraints.get("required", True):
-                        required = "Non"
+                if field_constraints and field_constraints.get("required"):
+                    required = "Oui"
                 else:
                     required = "Non"
-                
-                out_fd.write("\n| {} | {} {} | {} |".format(strUrl,TYPE_MAP[field_type],strFormat,required))
-                    
+
+                out_fd.write(
+                    f"\n| {strUrl} | {TYPE_MAP[field_type]} "
+                    f"{strFormat} | {required} |"
+                )
+
             out_fd.write("\n")
 
             for field in fields:
                 field_name = field.get("name")
                 field_description = field.get("description")
                 field_type = field.get("type")
-                field_example = field.get("example")               
-                field_constraints = field.get("constraints")   
+                field_example = field.get("example")
+                field_constraints = field.get("constraints")
                 field_format = field.get("format")
                 field_title = field.get("title")
                 listenums = []
@@ -301,65 +339,90 @@ def convert_json(schema_json, out_fd,style):
                 if field_constraints:
                     if field_constraints.get("required"):
                         required = "Valeur obligatoire"
-                    elif not field_constraints.get("required", True):
+                    else:
                         required = "Valeur optionnelle"
-                    
-                    if "minLength" in field_constraints:
-                        if(field_constraints["minLength"] != None):
-                            sizes = "Plus de "+str(field_constraints["minLength"])+" caractères"
-                        
-                    if "maxLength" in field_constraints:
-                        if(sizes != ""):
-                            sizes = "Entre "+sizes.replace("Plus de ","").replace(" caractères","")+" et "+str(field_constraints['maxLength'])+" caractères"
+
+                    if field_constraints.get("minLength"):
+                        sizes = (
+                            f"Plus de {field_constraints['minLength']} "
+                            "caractères"
+                        )
+
+                    if field_constraints.get("maxLength"):
+                        if sizes:
+                            sizes = (
+                                f"Entre {field_constraints['minLength']} "
+                                f"et {field_constraints['maxLength']} "
+                                "caractères"
+                            )
                         else:
-                            sizes = "Moins de "+str(field_constraints['maxLength'])+" caractères"        
-                    
-                    if "minimum" in field_constraints:
-                        if(field_constraints["minimum"] != None):
-                            intervals = "Valeur supérieur à "+str(field_constraints["minimum"])
-                        
-                    if "maximum" in field_constraints:
-                        if(intervals != ""):
-                            intervals = "Valeur entre "+intervals.replace("Valeur supérieur à ","")+" et "+str(field_constraints['maximum'])
+                            sizes = (
+                                f"Moins de {field_constraints['maxLength']} "
+                                "caractères"
+                            )
+
+                    if field_constraints.get("minimum"):
+                        intervals = (
+                            "Valeur supérieure à "
+                            f"{field_constraints['minimum']}"
+                        )
+
+                    if field_constraints.get("maximum"):
+                        if intervals:
+                            intervals = (
+                                f"Valeur entre {field_constraints['minimum']}"
+                                f" et {field_constraints['maximum']}"
+                            )
                         else:
-                            intervals = "Valeur inférieur à : "+str(field_constraints['maximum'])
-                            
-                    if "pattern" in field_constraints:
+                            intervals = (
+                                "Valeur inférieure à : "
+                                f"{field_constraints['maximum']}"
+                            )
+
+                    if field_constraints.get("pattern"):
                         pattern = str(field_constraints['pattern'])
 
-                    if "enum" in field_constraints:
+                    if field_constraints.get("enum"):
                         listenums = field_constraints["enum"]
 
-
                 out_fd.write("\n#### ")
-                if(field_title is not None):
-                    out_fd.write("{} - ".format(field_title))
-                out_fd.write("Propriété `{}`".format(field_name))
-                out_fd.write("\n\n> *Description : {}<br/>Ex : {}*".format(field_description, field_example))
-                if(required is not None):
-                    out_fd.write("\n- {}".format(required))
+                if field_title is not None:
+                    out_fd.write(f"{field_title} - ")
+                out_fd.write(f"Propriété `{field_name}`")
+                out_fd.write(f"\n\n> *Description : {field_description}*")
+                if field_example:
+                    out_fd.write(f"<br/>*Exemple : {field_example}*")
+                if required is not None:
+                    out_fd.write(f"\n- {required}")
                 else:
                     out_fd.write("\n- Valeur optionnelle")
-                out_fd.write("\n- Type : {}".format(TYPE_MAP[field_type]))
+                out_fd.write(f"\n- Type : {TYPE_MAP[field_type]}")
                 if field_format is not None:
-                    out_fd.write(" (format `{}`)".format(field_format))
-                if(len(listenums) > 0):
+                    out_fd.write(f" (format `{field_format}`)")
+                if len(listenums) > 0:
                     out_fd.write("\n- Valeurs autorisées : ")
                     for enum in listenums:
-                        out_fd.write("\n    - {}".format(enum))
-                if(intervals != ""):
-                    out_fd.write("\n- {}".format(intervals))
-                if(sizes != ""):
-                    out_fd.write("\n- {}".format(sizes))
-                if(pattern != ""):
-                    out_fd.write("\n- Motif : `{}`".format(pattern))
+                        # to prevent weird display due
+                        # to markdown quoting mechanism
+                        out_fd.write(
+                            "\n    - {}".format(
+                                enum if not enum.startswith(">")
+                                else "\\" + enum
+                            )
+                        )
+                if intervals != "":
+                    out_fd.write(f"\n- {intervals}")
+                if sizes != "":
+                    out_fd.write(f"\n- {sizes}")
+                if pattern != "":
+                    out_fd.write(f"\n- Motif : `{pattern}`")
                 out_fd.write("\n")
-              
+
 
 def format_description(field_json):
     description = field_json.get("description")
     if description:
-        return "{}|".format(description)
+        return f"{description}|"
     return ""
 
 
