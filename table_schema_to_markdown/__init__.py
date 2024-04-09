@@ -406,8 +406,8 @@ def convert_json(schema_json, out_fd, style):
                         # to markdown quoting mechanism
                         out_fd.write(
                             "\n    - {}".format(
-                                enum if not enum.startswith(">")
-                                else "\\" + enum
+                                "\\" + enum if isinstance(enum, str) and enum.startswith(">")
+                                else enum
                             )
                         )
                 if intervals != "":
