@@ -225,8 +225,11 @@ def write_property(
 
 
 def make_link_suitable(field_name):
-    # replacing dots and underscores with dashes to make the inner links work
-    return field_name.lower().replace('.', '-').replace('_', '-')
+    # replacing specific characters with dashes to make the inner links work
+    to_rep = [".", "_", "'", "&", "/", ":", ";", "?", "@", "=", "+", "$", "*"]
+    for c in to_rep:
+        field_name = field_name.replace(c, '-')
+    return field_name
 
 
 def convert_json(schema_json, out_fd, style):
