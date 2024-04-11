@@ -5,6 +5,7 @@ import logging
 
 from collections import OrderedDict
 from datetime import datetime
+from unidecode import unidecode
 
 NAME = "name"
 TITLE = "title"
@@ -224,12 +225,14 @@ def write_property(
             out_fd.write(prefix + property_value + suffix)
 
 
-def make_link_suitable(field_name):
+def make_link_suitable(field_prop):
     # replacing specific characters with dashes to make the inner links work
-    to_rep = [".", "_", "'", "&", "/", ":", ";", "?", "@", "=", "+", "$", "*"]
+    to_rep = [
+        ".", "_", "'", "&", "/", ":", ";", "?", "@", "=", "+", "$", "*", " "
+    ]
     for c in to_rep:
-        field_name = field_name.replace(c, '-')
-    return field_name
+        field_prop = field_prop.replace(c, '-')
+    return unidecode(field_prop.lower(), "utf-8")
 
 
 def convert_json(schema_json, out_fd, style):
@@ -291,8 +294,8 @@ def convert_json(schema_json, out_fd, style):
                 if field_title is not None:
                     strUrl = (
                         f"[{field_name}]"
-                        f"(#{field_title.lower().replace(' ', '-')}"
-                        f"---propriete-{make_link_suitable(field_name)})"
+                        f"(#{make_link_suitable(field_title)}"
+                        f"-propriete-{make_link_suitable(field_name)})"
                     )
                 else:
                     strUrl = (
