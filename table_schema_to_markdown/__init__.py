@@ -442,3 +442,14 @@ def convert_field(field_json, out_fd):
     out_fd.write(format_constraints(field_json))
 
     out_fd.write("|\n")
+
+
+def sources_to_markdown(schema_json):
+    if "sources" not in schema_json:
+        return None
+    md = "## Socle juridique du schéma\n"
+    for source in schema_json["sources"]:
+        if not all(k in source for k in ["title", "path"]):
+            return None
+        md += f"- [{source['title']}]({source['path']})\n"
+    return md
