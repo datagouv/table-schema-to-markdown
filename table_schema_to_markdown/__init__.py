@@ -410,12 +410,7 @@ def convert_json(schema_json, out_fd, style):
                     for enum in listenums:
                         # to prevent weird display due
                         # to markdown quoting mechanism
-                        out_fd.write(
-                            "\n    - {}".format(
-                                "\\" + enum if isinstance(enum, str) and enum.startswith(">")
-                                else enum
-                            )
-                        )
+                        out_fd.write(f"\n    - `{enum}`")
                 if intervals != "":
                     out_fd.write(f"\n- {intervals}")
                 if sizes != "":
